@@ -59,27 +59,10 @@ const checkAnswers = (roomId) => {
             const nextSong = room.songs[room.currentSongIndex];
             const options = generateOptions(nextSong);
             io.to(roomId).emit('song', { ...nextSong, options });
-            startTimer(roomId);
         } else {
             io.to(roomId).emit('game_over', room.scores);
         }
     }, 10000);
-};
-
-const startTimer = (roomId) => {
-    setTimeout(() => {
-        const room = rooms[roomId];
-        const currentSong = room.songs[room.currentSongIndex];
-
-        io.sockets.adapter.rooms.get(roomId).forEach(socketId => {
-            if (!room.answered.has(socketId)) {
-                room.answered.add(socketId);
-                room.answers[socketId] = 'No Answer';
-            }
-        });
-
-        checkAnswers(roomId);
-    }, 30000);
 };
 
 io.on('connection', (socket) => {
@@ -101,9 +84,6 @@ io.on('connection', (socket) => {
         const currentSong = rooms[roomId].songs[rooms[roomId].currentSongIndex];
         const options = generateOptions(currentSong);
         socket.emit('song', { ...currentSong, options });
-        if (rooms[roomId].answered.size === 0) {
-            startTimer(roomId);
-        }
     });
 
     socket.on('join_room', (roomId) => {
@@ -116,9 +96,6 @@ io.on('connection', (socket) => {
         const currentSong = rooms[roomId].songs[rooms[roomId].currentSongIndex];
         const options = generateOptions(currentSong);
         socket.emit('song', { ...currentSong, options });
-        if (rooms[roomId].answered.size === 0) {
-            startTimer(roomId);
-        }
     });
 
     socket.on('answer', ({ roomId, answer }) => {
