@@ -1,8 +1,38 @@
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
+const mongoose = require('mongoose');
+require('dotenv').config();
+const routes=require("./src/routes.js")
+const bodyParser=require("body-parser");
+
+const mongoString = process.env.DATABASE_URL;
+// MongoDB'ye bağlan
+mongoose.connect(mongoString, {
+
+})
+    .then(() => console.log('MongoDB bağlantısı başarılı!'))
+    .catch(err => console.error('MongoDB bağlantı hatası:', err));
 
 const app = express();
+app.use(bodyParser.json());
+app.use((req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader(
+      'Access-Control-Allow-Methods',
+      'OPTIONS, GET, POST, PUT, PATCH, DELETE'
+    );
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    next();
+  });
+  app.use('/api', routes)
+  app.use((error, req, res, next) => {
+    console.log(error);
+    const status = error.statusCode || 500;
+    const message = error.message;
+    const data=error.data
+    res.status(status).json({ message: message, data:data });
+  });
 const server = http.createServer(app);
 const io = socketIo(server);
 
@@ -133,4 +163,4 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(4000, () => console.log('Server is running on port 4000'));
+server.listen(8000, () => console.log('Server is running on port 4000'));
