@@ -4,6 +4,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 const routes = require('./src/routes.js');
 const bodyParser = require('body-parser');
@@ -38,17 +39,45 @@ app.use((error, req, res, next) => {
 const server = http.createServer(app);
 const io = socketIo(server);
 
+
+io.use((socket, next) => {
+    console.log("Socket.io middleware triggered");  // Add this log
+    
+    const token = socket.handshake.auth.token;
+    if (!token) {
+        console.log("Authentication error: Token is missing");
+        return next(new Error('Authentication error: Token is missing'));
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        console.log("Token decoded successfully:", decoded);  // Log successful decoding
+        socket.user = decoded;
+        next();
+    } catch (err) {
+        console.log("Authentication error: Invalid token");
+        return next(new Error('Authentication error: Invalid token'));
+    }
+});
+io.use((socket, next) => {
+    console.log("Handshake data: ", socket.handshake);  // Log the entire handshake object
+    next();
+});
+
+
+
 const songs = [
     { id: 1, title: 'Despacito', url: 'https://www.youtube.com/watch?v=kJQP7kiw5Fk' },
     { id: 2, title: 'Shape of You', url: 'https://www.youtube.com/watch?v=JGwWNGJdvx8' },
     { id: 3, title: 'Blinding Lights', url: 'https://www.youtube.com/watch?v=4NRXx6U8ABQ' },
     { id: 4, title: 'Senorita', url: 'https://www.youtube.com/watch?v=Pkh8UtuejGw' },
     { id: 5, title: 'Dance Monkey', url: 'https://www.youtube.com/watch?v=q0hyYWKXF0Q' }
-    // Add more songs as needed
 ];
 
-io.on('connection', (socket) => {
-    console.log('New client connected');
+io.on('connection', (socket) => {   
+     console.log('Client connected!');  // Basic connection check
+
+    console.log('New client connected', socket.user);
 
     socket.on('create_room', () => socketService.createRoom(io, socket, songs));
     

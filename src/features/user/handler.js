@@ -21,18 +21,12 @@ exports.createUser = async ( email, password, nickname) => {
   return saveResponse;
 };
 
-exports.updateUser = async (updatedData, errorMessage) => {
-  const userId = updatedData.userId;
-  const updatedUser = await User.findOneAndUpdate({
-    userId
-  }, updatedData);
-  if (!updatedUser) {
-    const error = new Error(errorMessage);
-    error.statusCode = 404;
-    throw error;
-  }
-  return updatedUser;
-}
+
+exports.findByEmail = async (email) => {
+    const user = await User.findOne({ email: email });
+    return user;
+};
+
 exports.findBynickname = async (nickname) => {
   const user = await User.findOne({
     nickname: { $regex: nickname.toString(), "$options": "i" }
