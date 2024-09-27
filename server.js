@@ -1,29 +1,23 @@
 // server.js
-const express = require('express');
-const connectDB = require('./config/db');
-const dotenv = require('dotenv');
-const authRoutes = require('./routes/authRoutes');
-const errorHandler = require('./middleware/errorHandler');
+import express from 'express';
+import connectDB  from './config/db.js';
+import dotenv from 'dotenv';
+import authRoutes from'./routes/authRoutes.js';
+import roomRoutes from'./routes/roomRoutes.js';
+import errorHandler from'./middleware/errorHandler.js';
 
-// Load environment variables
 dotenv.config();
-
-// Initialize app
 const app = express();
 
-// Connect Database
 connectDB();
 
-// Middleware
-app.use(express.json()); // Body parser
+app.use(express.json());
 
-// Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/rooms', roomRoutes);
 
-// Error Handling Middleware (should be last)
 app.use(errorHandler);
 
-// Port
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);

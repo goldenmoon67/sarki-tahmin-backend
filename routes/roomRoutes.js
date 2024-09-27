@@ -1,8 +1,8 @@
 // routes/roomRoutes.js
-const express = require('express');
-const { body, validationResult } = require('express-validator');
-const { createRoom } = require('../controllers/roomController');
-const authMiddleware = require('../middleware/authMiddleware');
+import express from 'express';
+import { createRoom, joinRoom } from'../controllers/roomController.js';
+import authMiddleware from'../middleware/authMiddleware.js';
+import { body, validationResult }from'express-validator';
 
 const router = express.Router();
 
@@ -23,7 +23,7 @@ router.post(
       .withMessage('Point limit must be between 1 and 50'),
     body('competitionType')
       .isIn(['multiple-choice', 'text'])
-      .withMessage('Competition type must be either multiple-choice or text')
+      .withMessage('Competition type must be either multiple-choice or text'),
   ],
   (req, res, next) => {
     const errors = validationResult(req);
@@ -35,4 +35,7 @@ router.post(
   createRoom
 );
 
-module.exports = router;
+// Join a room
+router.post('/join/:roomId', authMiddleware, joinRoom);
+
+export default  router;
